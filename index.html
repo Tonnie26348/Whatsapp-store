@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2F4B3C">
+<title>Everyday Essentials — Order via WhatsApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Karla:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #2B2A25;
+    --paper: #EFE3C8;
+    --paper-light: #F8F3E6;
+    --signage: #2F4B3C;
+    --signage-dark: #1C2E24;
+    --stamp: #C98A2C;
+    --alert: #A8452E;
+    --line: rgba(43, 42, 37, 0.16);
+    --radius: 14px;
+    --shadow: 0 10px 34px rgba(28, 23, 12, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Karla', system-ui, -apple-system, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 30px;
+  }
+  h1, p { margin: 0; }
+  button { font: inherit; }
+
+  /* ---------- HEADER ---------- */
+  .store-header {
+    position: relative;
+    background: var(--signage);
+    color: var(--paper-light);
+    padding: 26px 20px 32px;
+    text-align: center;
+  }
+  .store-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
+    font-size: clamp(2.4rem, 9vw, 3.4rem);
+    letter-spacing: 0.03em;
+    line-height: 1;
+  }
+  .store-tagline { margin-top: 6px; font-size: 0.92rem; opacity: 0.85; }
+  .store-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 16px;
+    background: rgba(248, 243, 230, 0.12);
+    border: 1px solid rgba(248, 243, 230, 0.35);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+  }
+  .store-badge .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ADE80;
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.25);
+    flex-shrink: 0;
+  }
+
+  .cart-icon-btn {
+    position: absolute;
+    top: 18px; right: 16px;
+    background: rgba(248, 243, 230, 0.14);
+    border: 1px solid rgba(248, 243, 230, 0.3);
+    border-radius: 999px;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--paper-light);
+    cursor: pointer;
+  }
+  .cart-count {
+    position: absolute;
+    top: -5px; right: -5px;
+    background: var(--stamp);
+    color: var(--ink);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    min-width: 18px; height: 18px;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+  }
+  .cart-count.pulse { animation: pulse 0.3s ease; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+  /* ---------- CATEGORY CHIPS ---------- */
+  .chips {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none;
+    font-family: 'Karla', sans-serif;
+    font-weight: 700;
+    font-size: 0.84rem;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--signage);
+    background: transparent;
+    color: var(--signage);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .chip.active { background: var(--signage); color: var(--paper-light); }
+  .chip:active { transform: scale(0.96); }
+
+  /* ---------- PRODUCT GRID ---------- */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 8px 20px 90px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); padding: 8px 32px 90px; } }
+  @media (min-width: 980px) { .grid { grid-template-columns: repeat(4, 1fr); max-width: 1120px; margin: 0 auto; padding: 8px 32px 90px; } }
+
+  .card {
+    background: var(--paper-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 12px rgba(28, 23, 12, 0.10);
+  }
+  .card-image {
+    aspect-ratio: 1 / 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    background: linear-gradient(160deg, rgba(47, 75, 60, 0.12), rgba(201, 138, 44, 0.16));
+  }
+  .card-body { padding: 10px 12px 2px; flex: 1; }
+  .card-name { font-size: 0.85rem; font-weight: 700; line-height: 1.25; margin-bottom: 4px; }
+  .card-price { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--signage); }
+  .card-actions { padding: 10px 12px 12px; }
+  .btn-add {
+    width: 100%; padding: 9px; border-radius: 8px; border: none;
+    background: var(--signage); color: var(--paper-light);
+    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-add:hover { background: var(--signage-dark); }
+  .btn-add:active { transform: scale(0.97); }
+
+  .stepper { display: flex; align-items: center; justify-content: space-between; background: var(--paper); border-radius: 8px; padding: 4px; }
+  .step-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    background: var(--signage); color: var(--paper-light);
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s ease;
+  }
+  .step-btn:active { transform: scale(0.9); }
+  .step-qty { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.88rem; }
+
+  /* ---------- BOTTOM BAR ---------- */
+  .bottom-bar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--signage); color: var(--paper-light);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    transform: translateY(120%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.18);
+    z-index: 30;
+  }
+  .bottom-bar.visible { transform: translateY(0); }
+  .bar-info { display: flex; flex-direction: column; }
+  .bar-count { font-size: 0.72rem; opacity: 0.82; }
+  .bar-total { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.05rem; }
+  .bar-btn { background: var(--stamp); color: var(--ink); border: none; padding: 11px 20px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+
+  /* ---------- OVERLAY + DRAWER ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(20, 17, 10, 0.45);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 40;
+  }
+  .overlay.visible { opacity: 1; pointer-events: auto; }
+
+  .cart-drawer {
+    position: fixed; z-index: 50;
+    background: var(--paper-light);
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow);
+    left: 0; right: 0; bottom: 0;
+    max-height: 88vh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-y: auto;
+  }
+  .cart-drawer.open { transform: translateY(0); }
+
+  @media (min-width: 720px) {
+    .cart-drawer { left: auto; right: 0; top: 0; bottom: 0; width: 420px; max-height: 100vh; border-radius: 0; transform: translateX(100%); }
+    .cart-drawer.open { transform: translateX(0); }
+    .drawer-handle { display: none; }
+  }
+
+  .drawer-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 10px auto 0; }
+  .drawer-close {
+    position: absolute; top: 14px; right: 16px;
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: rgba(43, 42, 37, 0.08); color: var(--ink);
+    font-size: 1.3rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ---------- RECEIPT (signature element) ---------- */
+  .receipt { margin: 20px 20px 0; }
+  .receipt-perf {
+    height: 12px;
+    background-image: radial-gradient(circle, var(--paper-light) 5px, var(--paper) 5.5px);
+    background-size: 18px 18px;
+    background-position: center;
+    border-radius: 2px 2px 0 0;
+  }
+  .receipt-body { background: var(--paper); padding: 4px 18px 16px; border-radius: 0 0 2px 2px; }
+  .receipt-heading { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.76rem; letter-spacing: 0.14em; text-align: center; padding-top: 10px; margin-bottom: 8px; }
+  .receipt-empty { text-align: center; font-size: 0.85rem; color: rgba(43, 42, 37, 0.55); padding: 22px 0; }
+  .receipt-line { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+  .receipt-step-group { display: flex; align-items: center; gap: 6px; }
+  .receipt-step {
+    width: 20px; height: 20px; border-radius: 5px; border: none;
+    background: var(--signage); color: var(--paper-light);
+    font-size: 0.85rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .receipt-line-qty { min-width: 14px; text-align: center; font-weight: 700; }
+  .receipt-line-name { flex: 1; font-family: 'Karla', sans-serif; font-size: 0.82rem; }
+  .receipt-line-price { font-weight: 700; }
+  .receipt-total-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 12px; border-top: 2px solid var(--ink); }
+  .receipt-total-label { font-family: 'Karla', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.06em; }
+  .receipt-total-value {
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem;
+    border: 2px solid var(--stamp); color: var(--stamp);
+    padding: 3px 10px; border-radius: 6px;
+    transform: rotate(-2deg); display: inline-block;
+  }
+
+  /* ---------- CHECKOUT FORM ---------- */
+  .checkout-form { padding: 18px 20px 28px; }
+  .form-error { color: var(--alert); font-size: 0.8rem; margin: 0 0 12px; display: none; }
+  .form-error.visible { display: block; }
+  .form-field { margin-bottom: 12px; }
+  .form-field label { display: block; font-size: 0.76rem; font-weight: 700; margin-bottom: 5px; color: var(--signage-dark); }
+  .form-field .optional { font-weight: 400; opacity: 0.6; }
+  .form-field input, .form-field textarea {
+    width: 100%; padding: 10px 12px; border-radius: 8px;
+    border: 1.5px solid var(--line); background: #fff;
+    font-family: 'Karla', sans-serif; font-size: 0.9rem; color: var(--ink);
+  }
+  .form-field textarea { resize: vertical; min-height: 58px; }
+  .form-field input:focus, .form-field textarea:focus { outline: 2px solid var(--signage); outline-offset: 1px; border-color: var(--signage); }
+
+  .btn-send {
+    width: 100%; padding: 14px; border-radius: 10px; border: none;
+    background: #25D366; color: #FFFFFF;
+    font-weight: 700; font-size: 0.95rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  .btn-send:active { transform: scale(0.98); }
+  .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---------- TOAST ---------- */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--paper-light);
+    padding: 12px 22px; border-radius: 999px; font-size: 0.85rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 60; max-width: 88vw; text-align: center;
+  }
+  .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- ACCESSIBILITY ---------- */
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="store-header">
+  <button class="cart-icon-btn" id="cartIconBtn" aria-label="View your order">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+      <path d="M3 6h18"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+  <h1 class="store-name" id="storeNameHeading">Everyday Essentials</h1>
+  <p class="store-tagline" id="storeTagline">Everything you need, in one place</p>
+  <div class="store-badge"><span class="dot"></span> Order by WhatsApp — no account needed</div>
+</header>
+
+<nav class="chips" id="chips" aria-label="Product categories">
+  <button class="chip active" data-cat="All" aria-pressed="true">All</button>
+  <button class="chip" data-cat="Home &amp; Living" aria-pressed="false">Home &amp; Living</button>
+  <button class="chip" data-cat="Accessories" aria-pressed="false">Accessories</button>
+  <button class="chip" data-cat="Stationery &amp; Gifts" aria-pressed="false">Stationery &amp; Gifts</button>
+</nav>
+
+<main>
+  <div class="grid" id="productGrid"></div>
+</main>
+
+<div class="bottom-bar" id="bottomBar">
+  <div class="bar-info">
+    <span class="bar-count" id="barCount">0 items</span>
+    <span class="bar-total" id="barTotal">KSh 0</span>
+  </div>
+  <button class="bar-btn" id="viewOrderBtn">View Order</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<aside class="cart-drawer" id="cartDrawer" aria-label="Your order">
+  <div class="drawer-handle"></div>
+  <button class="drawer-close" id="closeDrawerBtn" aria-label="Close">×</button>
+
+  <div class="receipt">
+    <div class="receipt-perf"></div>
+    <div class="receipt-body">
+      <div class="receipt-heading">YOUR ORDER</div>
+      <div class="receipt-items" id="receiptItems"></div>
+      <div class="receipt-total-row">
+        <span class="receipt-total-label">TOTAL</span>
+        <span class="receipt-total-value" id="receiptTotal">KSh 0</span>
+      </div>
+    </div>
+  </div>
+
+  <form class="checkout-form" id="checkoutForm" novalidate>
+    <p class="form-error" id="formError">Please add your name and delivery location.</p>
+    <div class="form-field">
+      <label for="buyerName">Your name</label>
+      <input type="text" id="buyerName" name="buyerName" placeholder="e.g. Amina Hassan" autocomplete="name">
+    </div>
+    <div class="form-field">
+      <label for="buyerLocation">Delivery location</label>
+      <input type="text" id="buyerLocation" name="buyerLocation" placeholder="e.g. Kilimani, Nairobi" autocomplete="address-level2">
+    </div>
+    <div class="form-field">
+      <label for="buyerNotes">Notes <span class="optional">(optional)</span></label>
+      <textarea id="buyerNotes" name="buyerNotes" placeholder="Preferred delivery time, gift note, etc."></textarea>
+    </div>
+    <button type="submit" class="btn-send" id="sendOrderBtn" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 2 11 13"/>
+        <path d="M22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+      Send Order via WhatsApp
+    </button>
+  </form>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   STORE SETTINGS — edit these before you publish the page
+   ============================================================ */
+const CONFIG = {
+  STORE_NAME: "Everyday Essentials",
+  TAGLINE: "Everything you need, in one place",
+  // WhatsApp number in international format: country code + number,
+  // no "+", no spaces, no leading 0.
+  // Kenyan example: 07XX XXX XXX becomes 2547XXXXXXXX
+  WHATSAPP_NUMBER: "254700000000",
+  CURRENCY: "KSh"
+};
+
+/* ============================================================
+   PRODUCTS — copy a line below to add more items.
+   "category" must match one of the chip labels below,
+   or add a new chip button to match a new category.
+   ============================================================ */
+const PRODUCTS = [
+  { id: 'mug-set',   name: 'Ceramic Mug Set (2pc)',  price: 1200, category: 'Home & Living',       emoji: '🍵' },
+  { id: 'candle',    name: 'Soy Wax Candle',         price: 800,  category: 'Home & Living',       emoji: '🕯️' },
+  { id: 'basket',    name: 'Woven Storage Basket',   price: 1500, category: 'Home & Living',       emoji: '🧺' },
+  { id: 'tote',      name: 'Canvas Tote Bag',        price: 900,  category: 'Accessories',         emoji: '👜' },
+  { id: 'bracelet',  name: 'Beaded Bracelet Set',    price: 650,  category: 'Accessories',         emoji: '📿' },
+  { id: 'wallet',    name: 'Leather Wallet',         price: 1800, category: 'Accessories',         emoji: '👛' },
+  { id: 'notebook',  name: 'A5 Hardcover Notebook',  price: 450,  category: 'Stationery & Gifts',  emoji: '📓' },
+  { id: 'giftwrap',  name: 'Gift Wrap Set (3pc)',    price: 350,  category: 'Stationery & Gifts',  emoji: '🎁' },
+  { id: 'pens',      name: 'Pen Set (5pc)',          price: 300,  category: 'Stationery & Gifts',  emoji: '🖊️' }
+];
+
+/* ============================================================
+   APP LOGIC — no need to edit below this line
+   ============================================================ */
+let cart = {};
+let activeCategory = 'All';
+let toastTimeout;
+
+document.getElementById('storeNameHeading').textContent = CONFIG.STORE_NAME;
+document.getElementById('storeTagline').textContent = CONFIG.TAGLINE;
+document.title = CONFIG.STORE_NAME + ' — Order via WhatsApp';
+
+function money(n) {
+  return CONFIG.CURRENCY + ' ' + n.toLocaleString();
+}
+
+function getFilteredProducts() {
+  if (activeCategory === 'All') return PRODUCTS;
+  return PRODUCTS.filter(function (p) { return p.category === activeCategory; });
+}
+
+function adjustQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  renderProducts();
+  renderCart();
+}
+
+function renderProducts() {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = getFilteredProducts().map(function (p) {
+    const qty = cart[p.id] || 0;
+    const action = qty === 0
+      ? '<button class="btn-add" data-id="' + p.id + '">Add</button>'
+      : '<div class="stepper">' +
+          '<button class="step-btn" data-id="' + p.id + '" data-delta="-1" aria-label="Decrease ' + p.name + '">\u2212</button>' +
+          '<span class="step-qty">' + qty + '</span>' +
+          '<button class="step-btn" data-id="' + p.id + '" data-delta="1" aria-label="Increase ' + p.name + '">+</button>' +
+        '</div>';
+    return (
+      '<div class="card">' +
+        '<div class="card-image">' + p.emoji + '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-name">' + p.name + '</div>' +
+          '<div class="card-price">' + money(p.price) + '</div>' +
+        '</div>' +
+        '<div class="card-actions">' + action + '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function getCartCount() {
+  return Object.values(cart).reduce(function (a, b) { return a + b; }, 0);
+}
+function getCartTotal() {
+  return Object.entries(cart).reduce(function (sum, entry) {
+    const p = PRODUCTS.find(function (p) { return p.id === entry[0]; });
+    return sum + (p ? p.price * entry[1] : 0);
+  }, 0);
+}
+
+function renderCart() {
+  const count = getCartCount();
+  const total = getCartTotal();
+
+  document.getElementById('cartCount').textContent = count;
+
+  const bar = document.getElementById('bottomBar');
+  bar.classList.toggle('visible', count > 0);
+  document.getElementById('barCount').textContent = count + (count === 1 ? ' item' : ' items');
+  document.getElementById('barTotal').textContent = money(total);
+
+  const receiptItems = document.getElementById('receiptItems');
+  const entries = Object.entries(cart);
+  if (entries.length === 0) {
+    receiptItems.innerHTML = '<div class="receipt-empty">Your order is empty.<br>Add something from the shop.</div>';
+  } else {
+    receiptItems.innerHTML = entries.map(function (entry) {
+      const id = entry[0], qty = entry[1];
+      const p = PRODUCTS.find(function (p) { return p.id === id; });
+      if (!p) return '';
+      return (
+        '<div class="receipt-line">' +
+          '<div class="receipt-step-group">' +
+            '<button class="receipt-step" data-id="' + id + '" data-delta="-1" aria-label="Decrease ' + p.name + '">\u2212</button>' +
+            '<span class="receipt-line-qty">' + qty + '</span>' +
+            '<button class="receipt-step" data-id="' + id + '" data-delta="1" aria-label="Increase ' + p.name + '">+</button>' +
+          '</div>' +
+          '<span class="receipt-line-name">' + p.name + '</span>' +
+          '<span class="receipt-line-price">' + money(p.price * qty) + '</span>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  document.getElementById('receiptTotal').textContent = money(total);
+  document.getElementById('sendOrderBtn').disabled = count === 0;
+}
+
+function pulseCartBadge() {
+  const badge = document.getElementById('cartCount');
+  badge.classList.remove('pulse');
+  void badge.offsetWidth;
+  badge.classList.add('pulse');
+}
+
+function openDrawer() {
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+function closeDrawer() {
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('visible');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(function () { toast.classList.remove('visible'); }, 3800);
+}
+
+function buildMessage(name, location, notes) {
+  const lines = [];
+  lines.push('Hi ' + CONFIG.STORE_NAME + '! I\'d like to place an order:');
+  lines.push('');
+  let i = 1;
+  Object.entries(cart).forEach(function (entry) {
+    const id = entry[0], qty = entry[1];
+    const p = PRODUCTS.find(function (p) { return p.id === id; });
+    if (!p) return;
+    lines.push(i + '. ' + p.name + ' x' + qty + ' \u2014 ' + money(p.price * qty));
+    i++;
+  });
+  lines.push('');
+  lines.push('Total: ' + money(getCartTotal()));
+  lines.push('');
+  lines.push('Name: ' + name);
+  lines.push('Delivery Location: ' + location);
+  if (notes) lines.push('Notes: ' + notes);
+  return lines.join('\n');
+}
+
+/* ---- event wiring ---- */
+document.getElementById('productGrid').addEventListener('click', function (e) {
+  const addBtn = e.target.closest('.btn-add');
+  const stepBtn = e.target.closest('.step-btn');
+  if (addBtn) {
+    adjustQty(addBtn.dataset.id, 1);
+    pulseCartBadge();
+  } else if (stepBtn) {
+    adjustQty(stepBtn.dataset.id, parseInt(stepBtn.dataset.delta, 10));
+  }
+});
+
+document.getElementById('receiptItems').addEventListener('click', function (e) {
+  const stepBtn = e.target.closest('.receipt-step');
+  if (stepBtn) adjustQty(stepBtn.dataset.id, parseInt(stepBtn.dataset.delta, 10));
+});
+
+document.getElementById('chips').addEventListener('click', function (e) {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('.chip').forEach(function (c) {
+    c.classList.remove('active');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  chip.classList.add('active');
+  chip.setAttribute('aria-pressed', 'true');
+  activeCategory = chip.dataset.cat;
+  renderProducts();
+});
+
+document.getElementById('cartIconBtn').addEventListener('click', openDrawer);
+document.getElementById('viewOrderBtn').addEventListener('click', openDrawer);
+document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
+document.getElementById('overlay').addEventListener('click', closeDrawer);
+
+document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const name = document.getElementById('buyerName').value.trim();
+  const location = document.getElementById('buyerLocation').value.trim();
+  const notes = document.getElementById('buyerNotes').value.trim();
+  const errorEl = document.getElementById('formError');
+
+  if (!name || !location) {
+    errorEl.classList.add('visible');
+    return;
+  }
+  errorEl.classList.remove('visible');
+
+  const message = buildMessage(name, location, notes);
+  const url = 'https://wa.me/' + CONFIG.WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
+  window.open(url, '_blank');
+
+  cart = {};
+  renderProducts();
+  renderCart();
+  closeDrawer();
+  showToast('Order sent! Confirm the details with the seller on WhatsApp.');
+  e.target.reset();
+});
+
+/* ---- initial render ---- */
+renderProducts();
+renderCart();
+</script>
+</body>
+</html>
