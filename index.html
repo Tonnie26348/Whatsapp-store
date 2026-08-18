@@ -421,6 +421,14 @@ async function loadProducts() {
   }
 }
 
+// Set up real-time listener
+supabase
+  .channel('products')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+    loadProducts();
+  })
+  .subscribe();
+
 /* ============================================================
    APP LOGIC — no need to edit below this line
    ============================================================ */
@@ -469,7 +477,7 @@ function renderProducts() {
         '</div>';
     return (
       '<div class="card">' +
-        '<div class="card-image">' + p.emoji + '</div>' +
+        (p.image_url ? '<img src="' + p.image_url + '" alt="' + p.name + '" style="width:100%; aspect-ratio:1/1; object-fit:cover;">' : '<div class="card-image">' + (p.emoji || '📦') + '</div>') +
         '<div class="card-body">' +
           '<div class="card-name">' + p.name + '</div>' +
           '<div class="card-price">' + money(p.price) + '</div>' +
