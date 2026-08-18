@@ -1,0 +1,16 @@
+{
+  "name": "SokoHub",
+  "short_name": "SokoHub",
+  "description": "Click. Shop. Enjoy.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ECE5DD",
+  "theme_color": "#075E54",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/512/shopping-basket.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
