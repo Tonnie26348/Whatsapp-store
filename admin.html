@@ -36,11 +36,11 @@
         <div class="form-group"><label>Name:</label><input type="text" id="pName"></div>
         <div class="form-group"><label>Price:</label><input type="number" id="pPrice"></div>
         <div class="form-group"><label>Category:</label><input type="text" id="pCat"></div>
-        <div class="form-group"><label>Product Image:</label><input type="file" id="pImage" accept="image/*"></div>
+        <div class="form-group"><label>Product Images (Max 5):</label><input type="file" id="pImage" accept="image/*" multiple></div>
         <button id="addBtn">Add Product</button>
         <hr>
         <table id="productTable">
-            <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr></thead>
+            <thead><tr><th>Images</th><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr></thead>
             <tbody id="productBody"></tbody>
         </table>
     </div>
@@ -65,7 +65,7 @@
             const body = document.getElementById('productBody');
             body.innerHTML = data.map(p => `
                 <tr>
-                    <td>${p.image_url ? `<img src="${p.image_url}">` : 'No Image'}</td>
+                    <td>${(p.image_urls || []).map(url => `<img src="${url}" style="width:30px; height:30px; margin-right:2px;">`).join('')}</td>
                     <td>${p.name}</td>
                     <td>${p.price}</td>
                     <td>${p.category}</td>
@@ -75,32 +75,39 @@
         }
 
         async function addProduct() {
-            const file = document.getElementById('pImage').files[0];
-            if (!file) { alert('Please select an image'); return; }
+            const files = document.getElementById('pImage').files;
+            if (files.length === 0 || files.length > 5) { 
+                alert('Please select between 1 and 5 images'); 
+                return; 
+            }
 
-            // 1. Upload Image
-            const fileName = `${Date.now()}_${file.name}`;
-            const { data: uploadData, error: uploadError } = await sb.storage
-                .from('product-images')
-                .upload(fileName, file);
-            
-            if (uploadError) { alert(uploadError.message); return; }
+            let imageUrls = [];
+            // Upload each image
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileName = `${Date.now()}_${i}_${file.name}`;
+                const { data, error } = await sb.storage
+                    .from('product-images')
+                    .upload(fileName, file);
+                
+                if (error) { alert(error.message); return; }
+                
+                const { data: urlData } = sb.storage.from('product-images').getPublicUrl(fileName);
+                imageUrls.push(urlData.publicUrl);
+            }
 
-            // 2. Get Public URL
-            const { data: urlData } = sb.storage.from('product-images').getPublicUrl(fileName);
-
-            // 3. Add to Database
+            // Add to Database
             const { error: dbError } = await sb.from('products').insert([{
                 name: document.getElementById('pName').value,
                 price: document.getElementById('pPrice').value,
                 category: document.getElementById('pCat').value,
-                image_url: urlData.publicUrl
+                image_urls: imageUrls
             }]);
             
             if (dbError) alert(dbError.message);
             else {
                 alert('Product added!');
-                loadProducts();
+                location.reload();
             }
         }
 
