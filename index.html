@@ -185,7 +185,11 @@
     height: 100%;
     object-fit: cover;
     border-radius: var(--radius-sm);
-    display: block; /* Ensures no extra spacing */
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .card:hover .card-image-container img {
+    transform: scale(1.05); /* Subtle zoom on hover */
   }
   .card-emoji {
     font-size: 2.5rem;
