@@ -34,8 +34,8 @@
     </div>
 
     <script>
-        // Initialize Supabase once
-        const supabase = supabase.createClient(
+        // Renaming local variable to 'sb' to avoid conflict with global 'supabase'
+        const sb = supabase.createClient(
             'https://arlupdxkxqukxayqxxmj.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo'
         );
@@ -43,13 +43,13 @@
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
             if (error) alert(error.message);
             else location.reload();
         }
 
         async function loadProducts() {
-            const { data, error } = await supabase.from('products').select('*');
+            const { data, error } = await sb.from('products').select('*');
             if (error) { console.error(error); return; }
             const body = document.getElementById('productBody');
             body.innerHTML = data.map(p => `
@@ -63,7 +63,7 @@
         }
 
         async function addProduct() {
-            const { error } = await supabase.from('products').insert([{
+            const { error } = await sb.from('products').insert([{
                 name: document.getElementById('pName').value,
                 price: document.getElementById('pPrice').value,
                 category: document.getElementById('pCat').value,
@@ -74,15 +74,15 @@
         }
 
         async function deleteProduct(id) {
-            await supabase.from('products').delete().eq('id', id);
+            await sb.from('products').delete().eq('id', id);
             loadProducts();
         }
 
-        // Event listeners instead of inline onclicks to avoid scope issues
+        // Event listeners
         document.getElementById('loginBtn').addEventListener('click', login);
         document.getElementById('addBtn').addEventListener('click', addProduct);
 
-        supabase.auth.getSession().then(({ data }) => {
+        sb.auth.getSession().then(({ data }) => {
             if (data.session) {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('adminPanel').style.display = 'block';
