@@ -6,8 +6,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        img { width: 50px; height: 50px; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -21,20 +25,19 @@
 
     <div id="adminPanel" style="display:none;">
         <h3>Add Product</h3>
-        <input type="text" id="pName" placeholder="Name">
-        <input type="number" id="pPrice" placeholder="Price">
-        <input type="text" id="pCat" placeholder="Category">
-        <input type="text" id="pEmoji" placeholder="Emoji">
-        <button id="addBtn">Add</button>
+        <div class="form-group"><label>Name:</label><input type="text" id="pName"></div>
+        <div class="form-group"><label>Price:</label><input type="number" id="pPrice"></div>
+        <div class="form-group"><label>Category:</label><input type="text" id="pCat"></div>
+        <div class="form-group"><label>Product Image:</label><input type="file" id="pImage" accept="image/*"></div>
+        <button id="addBtn">Add Product</button>
         <hr>
         <table id="productTable">
-            <thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr></thead>
+            <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr></thead>
             <tbody id="productBody"></tbody>
         </table>
     </div>
 
     <script>
-        // Renaming local variable to 'sb' to avoid conflict with global 'supabase'
         const sb = supabase.createClient(
             'https://arlupdxkxqukxayqxxmj.supabase.co', 
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo'
@@ -54,6 +57,7 @@
             const body = document.getElementById('productBody');
             body.innerHTML = data.map(p => `
                 <tr>
+                    <td>${p.image_url ? `<img src="${p.image_url}">` : 'No Image'}</td>
                     <td>${p.name}</td>
                     <td>${p.price}</td>
                     <td>${p.category}</td>
@@ -63,14 +67,33 @@
         }
 
         async function addProduct() {
-            const { error } = await sb.from('products').insert([{
+            const file = document.getElementById('pImage').files[0];
+            if (!file) { alert('Please select an image'); return; }
+
+            // 1. Upload Image
+            const fileName = `${Date.now()}_${file.name}`;
+            const { data: uploadData, error: uploadError } = await sb.storage
+                .from('product-images')
+                .upload(fileName, file);
+            
+            if (uploadError) { alert(uploadError.message); return; }
+
+            // 2. Get Public URL
+            const { data: urlData } = sb.storage.from('product-images').getPublicUrl(fileName);
+
+            // 3. Add to Database
+            const { error: dbError } = await sb.from('products').insert([{
                 name: document.getElementById('pName').value,
                 price: document.getElementById('pPrice').value,
                 category: document.getElementById('pCat').value,
-                emoji: document.getElementById('pEmoji').value
+                image_url: urlData.publicUrl
             }]);
-            if (error) alert(error.message);
-            else loadProducts();
+            
+            if (dbError) alert(dbError.message);
+            else {
+                alert('Product added!');
+                loadProducts();
+            }
         }
 
         async function deleteProduct(id) {
@@ -78,7 +101,6 @@
             loadProducts();
         }
 
-        // Event listeners
         document.getElementById('loginBtn').addEventListener('click', login);
         document.getElementById('addBtn').addEventListener('click', addProduct);
 
