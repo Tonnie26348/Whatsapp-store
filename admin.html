@@ -6,7 +6,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; padding: 20px; }
-        .form-group { margin-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     </style>
@@ -17,7 +16,7 @@
         <h3>Login</h3>
         <input type="email" id="email" placeholder="Email"><br>
         <input type="password" id="password" placeholder="Password"><br>
-        <button onclick="login()">Login</button>
+        <button id="loginBtn">Login</button>
     </div>
 
     <div id="adminPanel" style="display:none;">
@@ -26,7 +25,7 @@
         <input type="number" id="pPrice" placeholder="Price">
         <input type="text" id="pCat" placeholder="Category">
         <input type="text" id="pEmoji" placeholder="Emoji">
-        <button onclick="addProduct()">Add</button>
+        <button id="addBtn">Add</button>
         <hr>
         <table id="productTable">
             <thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr></thead>
@@ -35,19 +34,23 @@
     </div>
 
     <script>
-        const supabase = supabase.createClient('https://arlupdxkxqukxayqxxmj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo');
+        // Initialize Supabase once
+        const supabase = supabase.createClient(
+            'https://arlupdxkxqukxayqxxmj.supabase.co', 
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo'
+        );
 
         async function login() {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            });
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) alert(error.message);
             else location.reload();
         }
 
         async function loadProducts() {
-            const { data } = await supabase.from('products').select('*');
+            const { data, error } = await supabase.from('products').select('*');
+            if (error) { console.error(error); return; }
             const body = document.getElementById('productBody');
             body.innerHTML = data.map(p => `
                 <tr>
@@ -74,6 +77,10 @@
             await supabase.from('products').delete().eq('id', id);
             loadProducts();
         }
+
+        // Event listeners instead of inline onclicks to avoid scope issues
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('addBtn').addEventListener('click', addProduct);
 
         supabase.auth.getSession().then(({ data }) => {
             if (data.session) {
