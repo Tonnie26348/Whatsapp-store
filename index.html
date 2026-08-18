@@ -320,6 +320,10 @@
   <button class="chip" data-cat="Stationery &amp; Gifts" aria-pressed="false">Stationery &amp; Gifts</button>
 </nav>
 
+<div style="padding: 0 20px 10px;">
+  <input type="text" id="searchInput" placeholder="Search products..." style="width: 100%; padding: 10px; border-radius: 999px; border: 1.5px solid var(--signage); font-family: 'Karla', sans-serif;">
+</div>
+
 <main>
   <div class="grid" id="productGrid"></div>
 </main>
@@ -351,6 +355,9 @@
   </div>
 
   <form class="checkout-form" id="checkoutForm" novalidate>
+    <div style="background: #eef2ff; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; border: 1px solid #c7d2fe;">
+      <strong>Lipa na M-PESA:</strong> Till No. <strong>5254694</strong>
+    </div>
     <p class="form-error" id="formError">Please add your name and delivery location.</p>
     <div class="form-field">
       <label for="buyerName">Your name</label>
@@ -376,42 +383,50 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = 'https://arlupdxkxqukxayqxxmj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo';
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 /* ============================================================
    STORE SETTINGS — edit these before you publish the page
    ============================================================ */
 const CONFIG = {
-  STORE_NAME: "Everyday Essentials",
-  TAGLINE: "Everything you need, in one place",
+  STORE_NAME: "SokoHub",
+  TAGLINE: "Click. Shop. Enjoy.",
   // WhatsApp number in international format: country code + number,
   // no "+", no spaces, no leading 0.
   // Kenyan example: 07XX XXX XXX becomes 2547XXXXXXXX
-  WHATSAPP_NUMBER: "254700000000",
-  CURRENCY: "KSh"
+  WHATSAPP_NUMBER: "254798121497",
+  CURRENCY: "KSh",
+  MPESA_TILL: "5254694"
 };
 
 /* ============================================================
-   PRODUCTS — copy a line below to add more items.
-   "category" must match one of the chip labels below,
-   or add a new chip button to match a new category.
+   PRODUCTS — data is now loaded dynamically from Supabase
    ============================================================ */
-const PRODUCTS = [
-  { id: 'mug-set',   name: 'Ceramic Mug Set (2pc)',  price: 1200, category: 'Home & Living',       emoji: '🍵' },
-  { id: 'candle',    name: 'Soy Wax Candle',         price: 800,  category: 'Home & Living',       emoji: '🕯️' },
-  { id: 'basket',    name: 'Woven Storage Basket',   price: 1500, category: 'Home & Living',       emoji: '🧺' },
-  { id: 'tote',      name: 'Canvas Tote Bag',        price: 900,  category: 'Accessories',         emoji: '👜' },
-  { id: 'bracelet',  name: 'Beaded Bracelet Set',    price: 650,  category: 'Accessories',         emoji: '📿' },
-  { id: 'wallet',    name: 'Leather Wallet',         price: 1800, category: 'Accessories',         emoji: '👛' },
-  { id: 'notebook',  name: 'A5 Hardcover Notebook',  price: 450,  category: 'Stationery & Gifts',  emoji: '📓' },
-  { id: 'giftwrap',  name: 'Gift Wrap Set (3pc)',    price: 350,  category: 'Stationery & Gifts',  emoji: '🎁' },
-  { id: 'pens',      name: 'Pen Set (5pc)',          price: 300,  category: 'Stationery & Gifts',  emoji: '🖊️' }
-];
+let PRODUCTS = [];
+
+async function loadProducts() {
+  const { data, error } = await supabase.from('products').select('*');
+  if (error) {
+    console.error('Error loading products:', error);
+    showToast('Failed to load products. Please refresh.');
+  } else {
+    PRODUCTS = data;
+    renderProducts();
+    renderCart();
+  }
+}
 
 /* ============================================================
    APP LOGIC — no need to edit below this line
    ============================================================ */
 let cart = {};
 let activeCategory = 'All';
+let searchQuery = '';
 let toastTimeout;
 
 document.getElementById('storeNameHeading').textContent = CONFIG.STORE_NAME;
@@ -423,8 +438,15 @@ function money(n) {
 }
 
 function getFilteredProducts() {
-  if (activeCategory === 'All') return PRODUCTS;
-  return PRODUCTS.filter(function (p) { return p.category === activeCategory; });
+  let filtered = PRODUCTS;
+  if (activeCategory !== 'All') {
+    filtered = filtered.filter(function (p) { return p.category === activeCategory; });
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(function (p) { return p.name.toLowerCase().includes(q); });
+  }
+  return filtered;
 }
 
 function adjustQty(id, delta) {
@@ -543,8 +565,12 @@ function buildMessage(name, location, notes) {
     i++;
   });
   lines.push('');
-  lines.push('Total: ' + money(getCartTotal()));
+  lines.push('Total: ' + money(getFilteredTotal()));
   lines.push('');
+  lines.push('--- Payment Details ---');
+  lines.push('Lipa na M-PESA Till: ' + CONFIG.MPESA_TILL);
+  lines.push('');
+  lines.push('--- Customer Details ---');
   lines.push('Name: ' + name);
   lines.push('Delivery Location: ' + location);
   if (notes) lines.push('Notes: ' + notes);
@@ -581,6 +607,11 @@ document.getElementById('chips').addEventListener('click', function (e) {
   renderProducts();
 });
 
+document.getElementById('searchInput').addEventListener('input', function (e) {
+  searchQuery = e.target.value;
+  renderProducts();
+});
+
 document.getElementById('cartIconBtn').addEventListener('click', openDrawer);
 document.getElementById('viewOrderBtn').addEventListener('click', openDrawer);
 document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
@@ -612,8 +643,7 @@ document.getElementById('checkoutForm').addEventListener('submit', function (e) 
 });
 
 /* ---- initial render ---- */
-renderProducts();
-renderCart();
+loadProducts();
 </script>
 </body>
 </html>

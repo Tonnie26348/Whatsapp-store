@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SokoHub Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h2>SokoHub Admin</h2>
+    <div id="loginForm">
+        <h3>Login</h3>
+        <input type="email" id="email" placeholder="Email"><br>
+        <input type="password" id="password" placeholder="Password"><br>
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="adminPanel" style="display:none;">
+        <h3>Add Product</h3>
+        <input type="text" id="pName" placeholder="Name">
+        <input type="number" id="pPrice" placeholder="Price">
+        <input type="text" id="pCat" placeholder="Category">
+        <input type="text" id="pEmoji" placeholder="Emoji">
+        <button onclick="addProduct()">Add</button>
+        <hr>
+        <table id="productTable">
+            <thead><tr><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr></thead>
+            <tbody id="productBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const supabase = supabase.createClient('https://arlupdxkxqukxayqxxmj.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo');
+
+        async function login() {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            });
+            if (error) alert(error.message);
+            else location.reload();
+        }
+
+        async function loadProducts() {
+            const { data } = await supabase.from('products').select('*');
+            const body = document.getElementById('productBody');
+            body.innerHTML = data.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.price}</td>
+                    <td>${p.category}</td>
+                    <td><button onclick="deleteProduct('${p.id}')">Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function addProduct() {
+            const { error } = await supabase.from('products').insert([{
+                name: document.getElementById('pName').value,
+                price: document.getElementById('pPrice').value,
+                category: document.getElementById('pCat').value,
+                emoji: document.getElementById('pEmoji').value
+            }]);
+            if (error) alert(error.message);
+            else loadProducts();
+        }
+
+        async function deleteProduct(id) {
+            await supabase.from('products').delete().eq('id', id);
+            loadProducts();
+        }
+
+        supabase.auth.getSession().then(({ data }) => {
+            if (data.session) {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                loadProducts();
+            }
+        });
+    </script>
+</body>
+</html>
