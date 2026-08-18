@@ -171,10 +171,18 @@
     border-radius: var(--radius-sm);
     margin-bottom: var(--spacing-sm);
     overflow: hidden;
+    position: relative;
   }
+  .carousel-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.8); border: none; border-radius: 50%;
+    width: 30px; height: 30px; cursor: pointer;
+  }
+  .prev-btn { left: 5px; }
+  .next-btn { right: 5px; }
   .card-image-container img {
-    max-width: 80%;
-    max-height: 80%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
   }
   .card-emoji {
@@ -528,10 +536,16 @@ function renderProducts() {
           '<span class="step-qty">' + qty + '</span>' +
           '<button class="step-btn" data-id="' + p.id + '" data-delta="1" aria-label="Increase ' + p.name + '">+</button>' +
         '</div>';
+
+    const images = p.image_urls || [];
+    const hasMultiple = images.length > 1;
+
     return (
       '<div class="card">' +
-        '<div class="card-image-container">' +
-          (p.image_url ? '<img src="' + p.image_url + '" alt="' + p.name + '">' : '<span class="card-emoji">' + (p.emoji || '📦') + '</span>') +
+        '<div class="card-image-container" id="container-' + p.id + '">' +
+          (images.length > 0 ? '<img src="' + images[0] + '" alt="' + p.name + '" id="img-' + p.id + '" data-idx="0">' : '<span class="card-emoji">' + (p.emoji || '📦') + '</span>') +
+          (hasMultiple ? '<button class="carousel-btn prev-btn" onclick="changeImage(\'' + p.id + '\', -1)">❮</button>' +
+                          '<button class="carousel-btn next-btn" onclick="changeImage(\'' + p.id + '\', 1)">❯</button>' : '') +
         '</div>' +
         '<div class="card-body">' +
           '<div class="card-name">' + p.name + '</div>' +
@@ -541,6 +555,19 @@ function renderProducts() {
       '</div>'
     );
   }).join('');
+}
+
+function changeImage(productId, delta) {
+  const product = PRODUCTS.find(p => p.id === productId);
+  if (!product || !product.image_urls) return;
+  
+  const imgEl = document.getElementById('img-' + productId);
+  let currentIndex = parseInt(imgEl.dataset.idx);
+  
+  currentIndex = (currentIndex + delta + product.image_urls.length) % product.image_urls.length;
+  
+  imgEl.src = product.image_urls[currentIndex];
+  imgEl.dataset.idx = currentIndex;
 }
 
 function getCartCount() {
