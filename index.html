@@ -430,6 +430,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+console.log("App script loading...");
 const SUPABASE_URL = 'https://arlupdxkxqukxayqxxmj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFybHVwZHhreHF1a3hheXF4eG1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTI4OTgsImV4cCI6MjEwMjU2ODg5OH0.SkJewEi-Bo03rc_YpBtI-dY_hJYPXuZ8TSdmqkINhmo';
 
@@ -469,6 +470,7 @@ async function loadProducts() {
     console.error('Error loading products:', error);
     showToast('Failed to load products. Please refresh.');
   } else {
+    console.log('Products loaded:', data); // DEBUG
     PRODUCTS = data;
     renderCategories();
     renderProducts();
@@ -538,6 +540,7 @@ function renderProducts() {
         '</div>';
 
     const images = p.image_urls || [];
+    console.log('Rendering product:', p.name, 'Images array:', images); // DEBUG
     const hasMultiple = images.length > 1;
 
     return (
