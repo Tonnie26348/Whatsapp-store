@@ -47,6 +47,18 @@
   h1, p { margin: 0; }
   button { font: inherit; }
 
+  /* ---------- SKELETON LOADING ---------- */
+  .skeleton {
+    background: var(--color-line);
+    border-radius: var(--radius-md);
+    aspect-ratio: 1 / 1.4;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
   /* ---------- HEADER ---------- */
   .store-header {
     background: var(--color-primary);
@@ -486,7 +498,14 @@ function adjustQty(id, delta) {
 
 function renderProducts() {
   const grid = document.getElementById('productGrid');
+  
+  if (PRODUCTS.length === 0) {
+    grid.innerHTML = Array(4).fill('<div class="skeleton"></div>').join('');
+    return;
+  }
+
   grid.innerHTML = getFilteredProducts().map(function (p) {
+    // ... existing card rendering ...
     const qty = cart[p.id] || 0;
     const action = qty === 0
       ? '<button class="btn-add" data-id="' + p.id + '">Add</button>'
