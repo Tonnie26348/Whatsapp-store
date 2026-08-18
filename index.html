@@ -314,10 +314,7 @@
 </header>
 
 <nav class="chips" id="chips" aria-label="Product categories">
-  <button class="chip active" data-cat="All" aria-pressed="true">All</button>
-  <button class="chip" data-cat="Home &amp; Living" aria-pressed="false">Home &amp; Living</button>
-  <button class="chip" data-cat="Accessories" aria-pressed="false">Accessories</button>
-  <button class="chip" data-cat="Stationery &amp; Gifts" aria-pressed="false">Stationery &amp; Gifts</button>
+  <!-- Dynamic categories will be rendered here -->
 </nav>
 
 <div style="padding: 0 20px 10px;">
@@ -409,6 +406,15 @@ const CONFIG = {
    ============================================================ */
 let PRODUCTS = [];
 
+function renderCategories() {
+  const container = document.getElementById('chips');
+  const categories = ['All', ...new Set(PRODUCTS.map(p => p.category))];
+  
+  container.innerHTML = categories.map(cat => 
+    `<button class="chip ${activeCategory === cat ? 'active' : ''}" data-cat="${cat}" aria-pressed="${activeCategory === cat}">${cat}</button>`
+  ).join('');
+}
+
 async function loadProducts() {
   const { data, error } = await sb.from('products').select('*');
   if (error) {
@@ -416,6 +422,7 @@ async function loadProducts() {
     showToast('Failed to load products. Please refresh.');
   } else {
     PRODUCTS = data;
+    renderCategories();
     renderProducts();
     renderCart();
   }
@@ -605,13 +612,8 @@ document.getElementById('receiptItems').addEventListener('click', function (e) {
 document.getElementById('chips').addEventListener('click', function (e) {
   const chip = e.target.closest('.chip');
   if (!chip) return;
-  document.querySelectorAll('.chip').forEach(function (c) {
-    c.classList.remove('active');
-    c.setAttribute('aria-pressed', 'false');
-  });
-  chip.classList.add('active');
-  chip.setAttribute('aria-pressed', 'true');
   activeCategory = chip.dataset.cat;
+  renderCategories();
   renderProducts();
 });
 
