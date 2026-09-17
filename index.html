@@ -382,8 +382,9 @@
   <!-- Dynamic categories will be rendered here -->
 </nav>
 
-<div style="padding: 0 20px 10px;">
-  <input type="text" id="searchInput" placeholder="Search products..." style="width: 100%; padding: 10px; border-radius: 999px; border: 1.5px solid var(--signage); font-family: 'Karla', sans-serif;">
+<div style="padding: 0 20px 10px; display: flex; gap: 8px;">
+  <input type="text" id="searchInput" placeholder="Search products..." style="flex: 1; padding: 10px; border-radius: 999px; border: 1.5px solid var(--signage); font-family: 'Karla', sans-serif;">
+  <button id="refreshBtn" style="padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--signage); background: transparent; color: var(--signage); cursor: pointer; font-weight: 700;">Refresh</button>
 </div>
 
 <main>
@@ -729,6 +730,10 @@ document.getElementById('cartIconBtn').addEventListener('click', openDrawer);
 document.getElementById('viewOrderBtn').addEventListener('click', openDrawer);
 document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
 document.getElementById('overlay').addEventListener('click', closeDrawer);
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  showToast('Refreshing products...');
+  loadProducts();
+});
 
 document.getElementById('checkoutForm').addEventListener('submit', function (e) {
   e.preventDefault();
