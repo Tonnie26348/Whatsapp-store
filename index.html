@@ -375,6 +375,7 @@
   <h1 class="store-name" id="storeNameHeading">Everyday Essentials</h1>
   <p class="store-tagline" id="storeTagline">Everything you need, in one place</p>
   <div class="store-badge"><span class="dot"></span> Order by WhatsApp — no account needed</div>
+  <button id="installButton" style="display: none; margin-top: 10px; background: rgba(248, 243, 230, 0.2); border: 1px solid rgba(248, 243, 230, 0.4); color: white; padding: 6px 14px; border-radius: 999px; cursor: pointer; font-size: 0.76rem;">Install App</button>
 </header>
 
 <nav class="chips" id="chips" aria-label="Product categories">
@@ -756,6 +757,26 @@ document.getElementById('checkoutForm').addEventListener('submit', function (e) 
 
 /* ---- initial render ---- */
 loadProducts();
+
+let deferredPrompt;
+const installButton = document.getElementById('installButton');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installButton.style.display = 'inline-flex';
+});
+
+installButton.addEventListener('click', (e) => {
+  installButton.style.display = 'none';
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+    }
+    deferredPrompt = null;
+  });
+});
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
